@@ -17,25 +17,68 @@
       </select>
 
       <label for="rate">Rate:</label>
-      <input name="rate" type="range" min="0" max="3" value="1" step="0.1">
+      <input id="rate" name="rate" type="range" min="0" max="3" value="1" step="0.1">
 
       <label for="pitch">Pitch:</label>
 
-      <input name="pitch" type="range" min="0" max="2" step="0.1">
-      <textarea name="text">Hello! I love JavaScript 👍</textarea>
+      <input id="pitch" name="pitch" type="range" min="0" max="2" step="0.1">
+      <textarea name="text" id="textToSpeak" >Hello! I love JavaScript 👍</textarea>
       <button id="stop">Stop!</button>
       <button id="speak">Speak</button>
 
     </div>
 
 <script>
-  const msg = new SpeechSynthesisUtterance();
-  let voices = [];
-  const voicesDropdown = document.querySelector('[name="voice"]');
-  const options = document.querySelectorAll('[type="range"], [name="text"]');
-  const speakButton = document.querySelector('#speak');
-  const stopButton = document.querySelector('#stop');
+  const voiceSelect = document.getElementById('voices');
+    const rateInput = document.getElementById('rate');
+    const pitchInput = document.getElementById('pitch');
+    const textToSpeak = document.getElementById('textToSpeak');
+    const startButton = document.getElementById('speak');
+    const stopButton = document.getElementById('stop');
 
+    let synth = window.speechSynthesis;
+    let voices = [];
+
+    // Populate the voice options dropdown
+    function populateVoiceList() {
+      voices = synth.getVoices();
+      voiceSelect.innerHTML = '';
+      voices.forEach((voice, index) => {
+        const option = document.createElement('option');
+        option.textContent = `${voice.name} (${voice.lang})`;
+        option.setAttribute('data-index', index);
+        voiceSelect.appendChild(option);
+      });
+    }
+
+    populateVoiceList();
+
+    // Event listener to reload voices when they change
+    synth.onvoiceschanged = populateVoiceList;
+
+    // Event listener for start button
+    startButton.addEventListener('click', () => {
+      const selectedVoiceIndex = voiceSelect.options[voiceSelect.selectedIndex].getAttribute('data-index');
+      const selectedVoice = voices[selectedVoiceIndex];
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak.value);
+      utterance.voice = selectedVoice;
+      utterance.rate = parseFloat(rateInput.value);
+      utterance.pitch = parseFloat(pitchInput.value);
+
+      synth.speak(utterance);
+
+      startButton.disabled = true;
+      stopButton.disabled = false;
+    });
+
+    // Event listener for stop button
+    stopButton.addEventListener('click', () => {
+      synth.cancel();
+
+      startButton.disabled = false;
+      stopButton.disabled = true;
+    });
   //Your code goes here
 </script>
 
